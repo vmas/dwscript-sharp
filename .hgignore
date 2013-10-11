@@ -1,0 +1,8 @@
+syntax: glob
+*.orig
+*.suo
+*.user
+*.pdb
+*.dll
+*.local
+*.dcu
