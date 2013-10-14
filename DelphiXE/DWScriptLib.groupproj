@@ -1,0 +1,48 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{8CCF5682-B787-429B-912C-47BDDC61310B}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="DWScript.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="dwsLibRuntime.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="DWScript">
+			<MSBuild Projects="DWScript.dproj"/>
+		</Target>
+		<Target Name="DWScript:Clean">
+			<MSBuild Targets="Clean" Projects="DWScript.dproj"/>
+		</Target>
+		<Target Name="DWScript:Make">
+			<MSBuild Targets="Make" Projects="DWScript.dproj"/>
+		</Target>
+		<Target Name="dwsLibRuntime">
+			<MSBuild Projects="dwsLibRuntime.dproj"/>
+		</Target>
+		<Target Name="dwsLibRuntime:Clean">
+			<MSBuild Targets="Clean" Projects="dwsLibRuntime.dproj"/>
+		</Target>
+		<Target Name="dwsLibRuntime:Make">
+			<MSBuild Targets="Make" Projects="dwsLibRuntime.dproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="DWScript;dwsLibRuntime"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="DWScript:Clean;dwsLibRuntime:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="DWScript:Make;dwsLibRuntime:Make"/>
+		</Target>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
+	</Project>
