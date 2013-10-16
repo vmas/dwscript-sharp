@@ -44,6 +44,7 @@ type
 		['{A4E0EADC-E8F2-4388-B2BD-7B5DA5B1694D}']
 		function SetErrorCallback(callback: TDWSErrorCallback): HRESULT; stdcall;
 		function DefineType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
+		function DefineRecordType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 		function DefineArrayType(typedefinition: IDWSGenericArrayDefinition): HRESULT; stdcall;
 		function DefineMethod(methoddefinition: IDWSGenericMethodDefinition; out method : IUnknown): HRESULT; stdcall;
 		function Evaluate(code: TUnicodeString; out rv : TUnicodeString): HRESULT; stdcall;
@@ -64,11 +65,11 @@ type
 		destructor Destroy(); override;
 		function SetErrorCallback(callback: TDWSErrorCallback): HRESULT; stdcall;
 		function DefineType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
+		function DefineRecordType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 		function DefineArrayType(typedefinition: IDWSGenericArrayDefinition): HRESULT; stdcall;
 		function DefineMethod(methoddefinition: IDWSGenericMethodDefinition; out method : IUnknown): HRESULT; stdcall;
 		function Evaluate(code: TUnicodeString; out rv : TUnicodeString): HRESULT; stdcall;
 		function Stop(): HRESULT; stdcall;
-
 	end;
 
 	IDWSRuntime = interface
@@ -189,11 +190,12 @@ var
 	fieldDef : IDWSFieldDefinition;
 	c: TdwsClass;
 	f: TdwsField;
+	vi: Integer;
 begin
 	Result := E_FAIL;
 	if((typedefinition.GetName(name) <> S_OK) or name.IsNullOrEmpty())
 		then Exit(E_UNEXPECTED);
-	if(_scope.Classes.IndexOf(name) <> -1)
+	if((_scope.Records.IndexOf(name) <> -1) or (_scope.Classes.IndexOf(name) <> -1))
 		then Exit(E_ABORT);
 
 	c := _scope.Classes.Add();
@@ -215,13 +217,14 @@ begin
 					raise ECOMException.Create(E_UNEXPECTED);
 				SuccessCall(fieldDef.GetName(name));
 				SuccessCall(fieldDef.GetTypeName(typeName));
+				SuccessCall(fieldDef.GetModifier(vi));
 				if(name.IsNullOrEmpty() or typeName.IsNullOrEmpty()) then
 					raise ECOMException.Create(E_UNEXPECTED);
 
 				f := c.Fields.Add();
 				f.Name := name;
 				f.DataType := typeName;
-
+				f.Visibility := TdwsVisibility(vi);
 			end;
 			Result := S_OK;
 		except
@@ -232,6 +235,67 @@ begin
 	finally
 	   if(Result <> S_OK) then begin
 			_scope.Classes.Delete(_scope.Classes.IndexOf(c.Name));
+			c.Free;
+	   end;
+	end;
+
+end;
+
+function TDWSContext.DefineRecordType(typedefinition: IDWSGenericTypeDefinition) : HRESULT; stdcall;
+var
+	name, typeName : TUnicodeString;
+	members : ICOMEnumerable;
+	enumerator : ICOMEnumerator;
+	ok : boolean;
+	unkObj : IUnknown;
+	fieldDef : IDWSFieldDefinition;
+	c: TdwsRecord;
+	f: TdwsMember;
+	vi: Integer;
+begin
+	Result := E_FAIL;
+	if((typedefinition.GetName(name) <> S_OK) or name.IsNullOrEmpty())
+		then Exit(E_UNEXPECTED);
+	if((_scope.Records.IndexOf(name) <> -1) or (_scope.Classes.IndexOf(name) <> -1))
+		then Exit(E_ABORT);
+
+	c := _scope.Records.Add();
+	try
+		try
+			c.Name := name;
+			SuccessCall(typedefinition.GetFields(members));
+			if(members = nil)
+				then raise ECOMException.Create(E_UNEXPECTED);
+			SuccessCall(members.GetEnumerator(enumerator));
+			if(enumerator = nil) then
+				raise ECOMException.Create(E_UNEXPECTED);
+			while(true) do begin
+				SuccessCall(enumerator.MoveNext(ok));
+				if(not ok) then break;
+				SuccessCall(enumerator.GetCurrent(unkObj));
+				fieldDef := unkObj as IDWSFieldDefinition;
+				if(fieldDef = nil) then
+					raise ECOMException.Create(E_UNEXPECTED);
+				SuccessCall(fieldDef.GetName(name));
+				SuccessCall(fieldDef.GetTypeName(typeName));
+				SuccessCall(fieldDef.GetModifier(vi));
+				if(name.IsNullOrEmpty() or typeName.IsNullOrEmpty()) then
+					raise ECOMException.Create(E_UNEXPECTED);
+
+				f := c.Members.Add();
+				f.Name := name;
+				f.DataType := typeName;
+				f.Visibility := TdwsVisibility(vi);
+			end;
+			Result := S_OK;
+		except
+			on E : ECOMException do begin
+				Result := E.Code;
+			end;
+		end;
+	finally
+	   if(Result <> S_OK) then begin
+			_scope.Records.Delete(_scope.Records.IndexOf(c.Name));
 			c.Free;
 	   end;
 	end;
@@ -370,6 +434,7 @@ begin
 	_runtime.AddUnit(_scope);
 	try
 		s := 'uses dwsContext;' + #13#10 + code;
+		_assembly.Result.Clear();
 		_runtime.RecompileInContext(_context, s);
 		if _context.Msgs.Count = 0 then begin
 			_assembly.RunProgram(0);
@@ -435,7 +500,9 @@ var
 	v : IInfo;
 begin
 	v := _info.GetTemp(typeName);
-	if (not v.TypeSym.IsBaseType) then v := v.Method['Create'].Call();
+	if ((not v.TypeSym.IsBaseType) and (v.TypeSym.ClassName() <> 'TRecordSymbol'))
+		then v := v.Method['Create'].Call();
+
 	if( v <> nil) then begin
 		TDWSGenericTypeValue.Create('value of ' + typeName, v).GetInterface(IDWSGenericTypeValue, rv);
 		rv._AddRef;
@@ -488,7 +555,7 @@ begin
 	if(nativeObj <> nil) then begin
 		v := nativeObj.GetInfo();
 		if v <> nil then begin
-			_info.ResultAsVariant := v.Value;
+			_info.ResultVars.Data := v.Data;
 			Result := S_OK;
 		end else begin
 			Result := E_INVALIDARG;

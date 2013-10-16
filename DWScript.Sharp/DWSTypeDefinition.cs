@@ -20,6 +20,8 @@ namespace DWScript
 			get { return _name; }
 		}
 
+		public bool IsStruct { get; set; }
+
 		public IList<DWSFieldDefinition> Fields
 		{
 			get

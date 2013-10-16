@@ -45,6 +45,7 @@ type
 		function GetTypeName(out rv: TUnicodeString): HResult; stdcall;
 		function GetHasDefaultValue(out rv: Boolean): HResult; stdcall;
 		function GetDefaultValue(out rv: TUnicodeString): HResult; stdcall;
+		function GetModifier(out rv: Integer): HRESULT; stdcall;
 	end;
 
 
@@ -262,7 +263,7 @@ var
 begin
 	v := value as TDWSGenericTypeValue;
 	if (v <> nil) then begin
-        _value.Value := v._value.Value;
+		_value.Data := v._value.Data;
 		Result := S_OK;
 	end else begin
 		Result := E_INVALIDARG;

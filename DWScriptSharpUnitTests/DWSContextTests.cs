@@ -33,16 +33,17 @@ namespace UnitTests
 		[Test]
 		public void DefineMethod_AsIntegerFunctionWithParam()
 		{
-			var f = new DWSMethodDefinition("Test", (x, a) => a);
+			var f = new DWSMethodDefinition("Test", (x, a) => a[0]);
 			f.Args.Add(new DWSParameterDefinition("a", "Integer"));
 			f.ReturnTypeName = "Integer";
 			context.DefineMethod(f);
-
-			context.EvaluateScript(@"var a : Integer = Test(1);");
+			
+			string rv = context.EvaluateScript(@"var a : Integer = Test(123); Print(IntToStr(a));");
 			Assert.IsNull(this.LastErrorMessage);
+			Assert.AreEqual("123", rv);
 
 			this.ResetErrors();
-			context.EvaluateScript("var a : Integer = Test();");
+			context.EvaluateScript("a := Test();");
 			Assert.IsNotNull(this.LastErrorMessage);
 			GC.KeepAlive(f);
 		}
@@ -50,17 +51,21 @@ namespace UnitTests
 		[Test]
 		public void DefineMethod_AsIntegerFunctionWithDefaultParam()
 		{
-			var f = new DWSMethodDefinition("Test", (x, a) => 1);
+			var f = new DWSMethodDefinition("Test", (x, a) => 123);
 			f.Args.Add(new DWSParameterDefinition("a", "Integer") { DefaultValue = "1" });
 			f.ReturnTypeName = "Integer";
 			context.DefineMethod(f);
 
-			context.EvaluateScript(@"var a : Integer = Test(1);");
+			string rv;
+			rv = context.EvaluateScript(@"var a : Integer = Test(1); Print(IntToStr(a));");
 			Assert.IsNull(this.LastErrorMessage);
+			Assert.AreEqual("123", rv);
 
 			this.ResetErrors();
-			context.EvaluateScript("a := Test();");
+			rv = context.EvaluateScript("a := Test(); Print(IntToStr(a));");
 			Assert.IsNull(this.LastErrorMessage);
+			Assert.AreEqual("123", rv);
+
 			GC.KeepAlive(f);
 		}
 
@@ -81,6 +86,30 @@ namespace UnitTests
 		}
 
 		[Test]
+		public void DefineMethod_AsRecordFunction()
+		{
+			var t = new DWSTypeDefinition("TCustomType");
+			t.Fields.Add(new DWSFieldDefinition("x", "Integer"));
+			t.Fields.Add(new DWSFieldDefinition("y", "Integer"));
+			t.IsStruct = true;
+			context.DefineType(t);
+
+			var f = new DWSMethodDefinition("Test", (x, a) => {
+				var v = x.CreateTypedValue("TCustomType");
+				v["x"] = 123;
+				return v;
+			});
+			f.ReturnTypeName = "TCustomType";
+			context.DefineMethod(f);
+
+			string rv = context.EvaluateScript(@"var a : TCustomType = Test(); Print(IntToStr(a.x));");
+			Assert.IsNull(this.LastErrorMessage);
+			Assert.AreEqual("123", rv);
+
+			GC.KeepAlive(f);
+		}
+
+		[Test]
 		public void DefineType_AsType()
 		{
 			var t = new DWSTypeDefinition("TCustomType");
@@ -89,6 +118,19 @@ namespace UnitTests
 			context.DefineType(t);
 			
 			context.EvaluateScript(@"var a : TCustomType; a := TCustomType.Create(); a.x := 1; a.y := 2;");
+			Assert.IsNull(this.LastErrorMessage);
+		}
+
+		[Test]
+		public void DefineType_AsRecordType()
+		{
+			var t = new DWSTypeDefinition("TCustomType");
+			t.Fields.Add(new DWSFieldDefinition("x", "Integer"));
+			t.Fields.Add(new DWSFieldDefinition("y", "Integer"));
+			t.IsStruct = true;
+			context.DefineType(t);
+
+			context.EvaluateScript(@"var a : TCustomType; a.x := 1; a.y := 2;");
 			Assert.IsNull(this.LastErrorMessage);
 		}
 

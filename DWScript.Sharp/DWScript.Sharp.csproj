@@ -49,6 +49,7 @@
     <Compile Include="DWSProgramContext.cs" />
     <Compile Include="DWSTypeDefinition.cs" />
     <Compile Include="DWSValue.cs" />
+    <Compile Include="DWSVisibility.cs" />
     <Compile Include="Interop\ICOMEnumerable.cs" />
     <Compile Include="Interop\ICOMEnumerator.cs" />
     <Compile Include="Interop\IDelphiObject.cs" />

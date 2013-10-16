@@ -27,7 +27,10 @@ namespace DWScript
 
 		public void DefineType(DWSTypeDefinition type)
 		{
-			_context.AddType(type);
+			if (type.IsStruct)
+				_context.DefineRecordType(type);
+			else
+				_context.DefineType(type);
 		}
 
 		public void DefineType(DWSArrayDefinition type)

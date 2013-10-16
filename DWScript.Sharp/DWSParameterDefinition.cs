@@ -14,8 +14,8 @@ namespace DWScript
 
 		}
 
-		public bool HasDefaultValue { get; set; }
-		public string DefaultValue
+		public override bool HasDefaultValue { get; set; }
+		public override string DefaultValue
 		{
 			get { return _defaultValue; }
 			set
@@ -24,16 +24,6 @@ namespace DWScript
 					this.HasDefaultValue = true;
 				_defaultValue = value;
 			}
-		}
-
-		public override bool GetHasDefaultValue()
-		{
-			return this.HasDefaultValue;
-		}
-
-		public override string GetDefaultValue()
-		{
-			return this.DefaultValue;
 		}
 
 		public override string ToString()

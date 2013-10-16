@@ -9,14 +9,13 @@ namespace DWScript.Interop
 	public interface IDWSContext
 	{
 		void SetErrorCallback([MarshalAs(UnmanagedType.FunctionPtr)] DWSErrorCallbackDelegate callback);		
-		void AddType([MarshalAs(UnmanagedType.Interface)] IDWSGenericTypeDefinition typeDefinition);
+		void DefineType([MarshalAs(UnmanagedType.Interface)] IDWSGenericTypeDefinition typeDefinition);
+		void DefineRecordType([MarshalAs(UnmanagedType.Interface)] IDWSGenericTypeDefinition typedefinition);
 		void DefineArrayType([MarshalAs(UnmanagedType.Interface)] IDWSGenericArrayDefinition typedefinition);
 		[return: MarshalAs(UnmanagedType.Interface)]
 		object AddFunction([MarshalAs(UnmanagedType.Interface)] IDWSGenericMethodDefinition methodDefinition);
 		[return: MarshalAs(UnmanagedType.LPWStr)]
 		string Evaluate([MarshalAs(UnmanagedType.LPWStr)] string code);
-		void Stop();
-		[return: MarshalAs(UnmanagedType.LPWStr)]
-		string Test();
+		void Stop();		
 	}
 }

@@ -14,6 +14,7 @@ namespace DWScript
 		{
 			_name = name;
 			_typeName = typeName;
+			this.Modifier = DWSVisibility.Public;
 		}
 
 		public string Name
@@ -26,24 +27,43 @@ namespace DWScript
 			get { return _typeName; }
 		}
 
-		public string GetName()
+		public virtual bool HasDefaultValue
+		{
+			get { return false; }
+			set { }
+		}
+
+		public virtual string DefaultValue
+		{
+			get { throw new NotSupportedException(); }
+			set { throw new NotSupportedException(); }
+		}
+
+		public DWSVisibility Modifier { get; set; }
+
+		string IDWSFieldDefinition.GetName()
 		{
 			return _name;
 		}
 
-		public string GetTypeName()
+		string IDWSFieldDefinition.GetTypeName()
 		{
 			return _typeName;
 		}
 
-		public virtual bool GetHasDefaultValue()
+		bool IDWSFieldDefinition.GetHasDefaultValue()
 		{
-			return false;
+			return this.HasDefaultValue;
 		}
 
-		public virtual string GetDefaultValue()
+		string IDWSFieldDefinition.GetDefaultValue()
 		{
-			throw new NotSupportedException();
+			return this.DefaultValue;
+		}
+
+		DWSVisibility IDWSFieldDefinition.GetModifier()
+		{
+			return this.Modifier;
 		}
 	}
 }

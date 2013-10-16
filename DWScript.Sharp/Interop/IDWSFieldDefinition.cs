@@ -16,5 +16,7 @@ namespace DWScript.Interop
 		bool GetHasDefaultValue();
 		[return: MarshalAs(UnmanagedType.LPWStr)]
 		string GetDefaultValue();
+		[return: MarshalAs(UnmanagedType.I4)]
+		DWSVisibility GetModifier();
 	}
 }
