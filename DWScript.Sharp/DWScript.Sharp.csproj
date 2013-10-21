@@ -40,6 +40,7 @@
   <ItemGroup>
     <Compile Include="Delegates.cs" />
     <Compile Include="DelphiArray.cs" />
+    <Compile Include="DWSArray.cs" />
     <Compile Include="DWSArrayDefinition.cs" />
     <Compile Include="DWSContext.cs" />
     <Compile Include="DWSExecutionErrorEventArgs.cs" />
@@ -55,7 +56,7 @@
     <Compile Include="Interop\IDelphiObject.cs" />
     <Compile Include="Interop\IDWSContext.cs" />
     <Compile Include="Interop\IDWSFieldDefinition.cs" />
-    <Compile Include="Interop\IDWSFunctionCallInfo.cs" />
+    <Compile Include="Interop\IDWSProgramInfo.cs" />
     <Compile Include="Interop\IDWSGenericArrayDefinition.cs" />
     <Compile Include="Interop\IDWSGenericMethodDefinition.cs" />
     <Compile Include="Interop\IDWSGenericTypeDefinition.cs" />

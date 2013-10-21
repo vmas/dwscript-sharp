@@ -31,7 +31,10 @@ type
 		function GetField(name : TUnicodeString; out value: IDWSGenericTypeValue): HResult; stdcall;
 		function SetField(name : TUnicodeString; value: IDWSGenericTypeValue): HResult; stdcall;
 		function GetElement(index: Int32; out rv: IDWSGenericTypeValue): HResult; stdcall;
-		//function SetElement(index: Int32; out rv: IDWSGenericTypeValue): HResult; stdcall;
+		function SetElement(index: Int32; value: IDWSGenericTypeValue): HResult; stdcall;
+		function SetLength(len: Int32): HResult; stdcall;
+		function GetProgramInfo(out rv: IUnknown): HRESULT; stdcall;
+		function GetElementsTypeName(out rv: TUnicodeString): HRESULT; stdcall;
 	end;
 
 	IDWSNativeGenericTypeValue = interface
@@ -47,7 +50,6 @@ type
 		function GetDefaultValue(out rv: TUnicodeString): HResult; stdcall;
 		function GetModifier(out rv: Integer): HRESULT; stdcall;
 	end;
-
 
 	// TDWSGenericType
 	//
@@ -83,6 +85,10 @@ type
 		function GetField(name : TUnicodeString; out rv: IDWSGenericTypeValue): HResult; stdcall;
 		function SetField(name : TUnicodeString; value: IDWSGenericTypeValue): HResult; stdcall;
 		function GetElement(index: Int32; out rv: IDWSGenericTypeValue): HResult; stdcall;
+		function SetElement(index: Int32; value: IDWSGenericTypeValue): HResult; stdcall;
+		function SetLength(len: Int32): HResult; stdcall;
+		function GetProgramInfo(out rv: IUnknown): HRESULT; stdcall;
+		function GetElementsTypeName(out rv: TUnicodeString): HRESULT; stdcall;
 
 		function GetInfo() : IInfo;
 
@@ -106,6 +112,33 @@ type
 		function MoveNext(out rv: boolean): HResult; stdcall;
 	end;
 
+	IDWSProgramInfo = interface
+		['{6CDAC2C3-0175-4566-AEFB-7F1B1E59E39C}']
+		function GetVariable(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+		function GetTypeReference(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+		function SetResultAsString(value: TUnicodeString): HRESULT; stdcall;
+		function SetResultAsBoolean(value: Boolean): HRESULT; stdcall;
+		function SetResultAsInt64(value: Int64): HRESULT; stdcall;
+		function SetResultAsDouble(value: Double): HRESULT; stdcall;
+		function SetResultAsObject(value: IDWSGenericTypeValue): HRESULT; stdcall;
+		function CreateTypedValue(typeName: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+	end;
+
+	TDWSProgramInfo = class(TCOMObject, IDWSProgramInfo)
+	private
+		_info: TProgramInfo;
+	public
+		constructor Create(Info: TProgramInfo);
+		function GetVariable(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+		function GetTypeReference(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+		function SetResultAsString(value: TUnicodeString): HRESULT; stdcall;
+		function SetResultAsBoolean(value: Boolean): HRESULT; stdcall;
+		function SetResultAsInt64(value: Int64): HRESULT; stdcall;
+		function SetResultAsDouble(value: Double): HRESULT; stdcall;
+		function SetResultAsObject(value: IDWSGenericTypeValue): HRESULT; stdcall;
+		function CreateTypedValue(typeName : TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+	end;
+
 implementation
 
 function CreateValue(name: string; v : IInfo) : IDWSGenericTypeValue;
@@ -125,6 +158,12 @@ constructor TDWSGenericTypeValue.Create(name: string; obj: IInfo);
 begin
 	_name := name;
 	_value := obj;
+end;
+
+function TDWSGenericTypeValue.GetProgramInfo(out rv: IUnknown): HRESULT; stdcall;
+begin
+	TDWSProgramInfo.Create(_value.Exec.Info).GetInterface(IUnknown, rv);
+	Result := S_OK;
 end;
 
 function TDWSGenericTypeValue.GetInfo() : IInfo;
@@ -177,7 +216,7 @@ var
 begin
 	v := value as TDWSGenericTypeValue;
 	if (v <> nil) then begin
-		_value.Member[name].Value := v._value.Value;
+		_value.Member[name].Data := v._value.Data;
 		Result := S_OK;
 	end else begin
 		Result := E_INVALIDARG;
@@ -199,6 +238,31 @@ end;
 function TDWSGenericTypeValue.GetElement(index: Int32; out rv: IDWSGenericTypeValue): HResult; stdcall;
 begin
 	rv := CreateValue(IntToStr(index), _value.Element([index]));
+	Result := S_OK;
+end;
+
+function TDWSGenericTypeValue.SetElement(index: Int32; value: IDWSGenericTypeValue): HResult; stdcall;
+var
+	v : TDWSGenericTypeValue;
+begin
+	v := value as TDWSGenericTypeValue;
+	if (v <> nil) then begin
+		_value.Element([index]).Data := v._value.Data;
+		Result := S_OK;
+	end else begin
+		Result := E_INVALIDARG;
+	end;
+end;
+
+function TDWSGenericTypeValue.GetElementsTypeName(out rv: TUnicodeString): HRESULT; stdcall;
+begin
+	rv := _value.TypeSym.Typ.Name;
+	Result := S_OK;
+end;
+
+function TDWSGenericTypeValue.SetLength(len: Int32): HResult; stdcall;
+begin
+	_value.Exec.Info.Func['SetLength'].Call([_value.Value, len]);
 	Result := S_OK;
 end;
 
@@ -301,5 +365,99 @@ begin
 	rv := _enumerator.MoveNext();
 	Result := S_OK;
 end;
+
+
+{$REGION ' TDWSProgramInfo implementation '}
+
+constructor TDWSProgramInfo.Create(Info: TProgramInfo);
+begin
+	_info := Info;
+end;
+
+function TDWSProgramInfo.GetVariable(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+var
+	v : IInfo;
+begin
+	v := _info.Vars[name];
+	if( v <> nil) then begin
+		TDWSGenericTypeValue.Create(name, v).GetInterface(IDWSGenericTypeValue, rv);
+		rv._AddRef;
+	end else begin
+		rv := nil;
+	end;
+	Result := S_OK;
+end;
+
+function TDWSProgramInfo.CreateTypedValue(typeName: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+var
+	v : IInfo;
+begin
+	v := _info.GetTemp(typeName);
+	if (v.TypeSym.ClassName() = 'TClassSymbol')
+		then v := v.Method['Create'].Call();
+
+	if( v <> nil) then begin
+		TDWSGenericTypeValue.Create('value of ' + typeName, v).GetInterface(IDWSGenericTypeValue, rv);
+		rv._AddRef;
+	end else begin
+		rv := nil;
+	end;
+	Result := S_OK;
+end;
+
+function TDWSProgramInfo.GetTypeReference(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
+var
+	v : IInfo;
+begin
+	v := _info.GetTemp(name);
+	if( v <> nil) then begin
+		TDWSGenericTypeValue.Create(name, v).GetInterface(IDWSGenericTypeValue, rv);
+		rv._AddRef;
+	end else begin
+		rv := nil;
+	end;
+	Result := S_OK;
+end;
+
+function TDWSProgramInfo.SetResultAsString(value: TUnicodeString): HRESULT; stdcall;
+begin
+	_info.ResultAsString := value;
+	Result := S_OK;
+end;
+function TDWSProgramInfo.SetResultAsBoolean(value: Boolean): HRESULT; stdcall;
+begin
+	_info.ResultAsBoolean := value;
+	Result := S_OK;
+end;
+function TDWSProgramInfo.SetResultAsInt64(value: Int64): HRESULT; stdcall;
+begin
+	_info.ResultAsInteger := value;
+	Result := S_OK;
+end;
+function TDWSProgramInfo.SetResultAsDouble(value: Double): HRESULT; stdcall;
+begin
+	_info.ResultAsFloat := value;
+	Result := S_OK;
+end;
+function TDWSProgramInfo.SetResultAsObject(value: IDWSGenericTypeValue): HRESULT; stdcall;
+var
+	nativeObj : IDWSNativeGenericTypeValue;
+	v : IInfo;
+begin
+	nativeObj := value as IDWSNativeGenericTypeValue;
+	if(nativeObj <> nil) then begin
+		v := nativeObj.GetInfo();
+		if v <> nil then begin
+			_info.ResultVars.Data := v.Data;
+			Result := S_OK;
+		end else begin
+			Result := E_INVALIDARG;
+		end;
+	end else begin
+		Result := E_INVALIDARG;
+	end;
+end;
+
+{$ENDREGION TDWSProgramInfo}
 
 end.

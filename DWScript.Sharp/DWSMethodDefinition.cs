@@ -59,7 +59,7 @@ namespace DWScript
 			return this.ReturnTypeName;
 		}
 
-		protected virtual void Callback(IDWSFunctionCallInfo comObj)
+		protected virtual void Callback(IDWSProgramInfo comObj)
 		{
 			var args = new DWSValue[this.Args.Count];
 			var argDefs = this.Args;

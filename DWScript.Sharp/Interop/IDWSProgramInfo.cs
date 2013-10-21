@@ -6,7 +6,7 @@ namespace DWScript.Interop
 	[ComImport]
 	[Guid("6CDAC2C3-0175-4566-AEFB-7F1B1E59E39C")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	public interface IDWSFunctionCallInfo
+	public interface IDWSProgramInfo
 	{
 		[return: MarshalAs(UnmanagedType.Interface)]
 		IDWSGenericTypeValue GetVariable([MarshalAs(UnmanagedType.LPWStr)] string name);

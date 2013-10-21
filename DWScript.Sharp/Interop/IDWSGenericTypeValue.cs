@@ -42,6 +42,12 @@ namespace DWScript.Interop
 
 		[return: MarshalAs(UnmanagedType.Interface)]
 		IDWSGenericTypeValue GetElementByIndex(int index);
+		void SetElementByIndex(int index, [MarshalAs(UnmanagedType.Interface)] IDWSGenericTypeValue value);
+		void SetLength(int length);
 
+		[return: MarshalAs(UnmanagedType.Interface)]
+		IDWSProgramInfo GetProgramInfo();
+		[return: MarshalAs(UnmanagedType.LPWStr)]
+		string GetElementsTypeName();
 	}
 }

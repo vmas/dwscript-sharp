@@ -16,6 +16,6 @@ namespace DWScript.Interop
 	public delegate void DWSErrorCallbackDelegate([MarshalAs(UnmanagedType.LPWStr)] string error);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void DWSCOMCallbackDelegate([MarshalAs(UnmanagedType.Interface)] IDWSFunctionCallInfo comObj);
+	public delegate void DWSCOMCallbackDelegate([MarshalAs(UnmanagedType.Interface)] IDWSProgramInfo comObj);
 	
 }

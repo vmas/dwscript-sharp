@@ -96,33 +96,7 @@ type
 			procedure dwsEvalCallback(info : TProgramInfo);
 	end;
 
-	IDWSProgramInfo = interface
-		['{6CDAC2C3-0175-4566-AEFB-7F1B1E59E39C}']
-		function GetVariable(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-		function GetTypeReference(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-		function SetResultAsString(value: TUnicodeString): HRESULT; stdcall;
-		function SetResultAsBoolean(value: Boolean): HRESULT; stdcall;
-		function SetResultAsInt64(value: Int64): HRESULT; stdcall;
-		function SetResultAsDouble(value: Double): HRESULT; stdcall;
-		function SetResultAsObject(value: IDWSGenericTypeValue): HRESULT; stdcall;
-		function CreateTypedValue(typeName: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-	end;
 
-	TDWSProgramInfo = class(TCOMObject, IDWSProgramInfo)
-	private
-		_info: TProgramInfo;
-		_context: TDWSContext;
-	public
-		constructor Create(context: TDWSContext; Info: TProgramInfo);
-		function GetVariable(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-		function GetTypeReference(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-		function SetResultAsString(value: TUnicodeString): HRESULT; stdcall;
-		function SetResultAsBoolean(value: Boolean): HRESULT; stdcall;
-		function SetResultAsInt64(value: Int64): HRESULT; stdcall;
-		function SetResultAsDouble(value: Double): HRESULT; stdcall;
-		function SetResultAsObject(value: IDWSGenericTypeValue): HRESULT; stdcall;
-		function CreateTypedValue(typeName : TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-	end;
 
 implementation
 
@@ -162,7 +136,13 @@ begin
 	_runtime := runtime;
 	_scope := TdwsUnit.Create(nil);
 	_scope.UnitName := 'dwsContext';
-	_context := _runtime.Compile('');
+	_context := _runtime.Compile(''
++ 'procedure SetLength(a: array of Variant; size: Integer);'#13#10
++ 'begin'#13#10
++ '	a.SetLength(size);'#13#10
++ 'end;'#13#10
+
+);
 	_assembly := _context.BeginNewExecution();
 
 end;
@@ -468,103 +448,12 @@ procedure  TMethodProxy.dwsEvalCallback(info: TProgramInfo);
 var
 	comInfo: TDWSProgramInfo;
 begin
-	comInfo := TDWSProgramInfo.Create(_context, Info);
+	comInfo := TDWSProgramInfo.Create(Info);
 	_callback(comInfo);
 end;
 {$ENDREGION ' TMethodProxy '}
 
 
-{$REGION ' TDWSProgramInfo implementation '}
-constructor TDWSProgramInfo.Create(context: TDWSContext; Info: TProgramInfo);
-begin
-	_info := Info;
-	_context := context;
-end;
 
-function TDWSProgramInfo.GetVariable(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-var
-	v : IInfo;
-begin
-	v := _info.Vars[name];
-	if( v <> nil) then begin
-		TDWSGenericTypeValue.Create(name, v).GetInterface(IDWSGenericTypeValue, rv);
-		rv._AddRef;
-	end else begin
-		rv := nil;
-	end;
-	Result := S_OK;
-end;
-
-function TDWSProgramInfo.CreateTypedValue(typeName: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-var
-	v : IInfo;
-begin
-	v := _info.GetTemp(typeName);
-	if ((not v.TypeSym.IsBaseType) and (v.TypeSym.ClassName() <> 'TRecordSymbol'))
-		then v := v.Method['Create'].Call();
-
-	if( v <> nil) then begin
-		TDWSGenericTypeValue.Create('value of ' + typeName, v).GetInterface(IDWSGenericTypeValue, rv);
-		rv._AddRef;
-	end else begin
-		rv := nil;
-	end;
-	Result := S_OK;
-end;
-
-function TDWSProgramInfo.GetTypeReference(name: TUnicodeString; out rv: IDWSGenericTypeValue): HRESULT; stdcall;
-var
-	v : IInfo;
-begin
-	v := _info.GetTemp(name);
-	if( v <> nil) then begin
-		TDWSGenericTypeValue.Create(name, v).GetInterface(IDWSGenericTypeValue, rv);
-		rv._AddRef;
-	end else begin
-		rv := nil;
-	end;
-	Result := S_OK;
-end;
-
-function TDWSProgramInfo.SetResultAsString(value: TUnicodeString): HRESULT; stdcall;
-begin
-	_info.ResultAsString := value;
-	Result := S_OK;
-end;
-function TDWSProgramInfo.SetResultAsBoolean(value: Boolean): HRESULT; stdcall;
-begin
-	_info.ResultAsBoolean := value;
-	Result := S_OK;
-end;
-function TDWSProgramInfo.SetResultAsInt64(value: Int64): HRESULT; stdcall;
-begin
-	_info.ResultAsInteger := value;
-	Result := S_OK;
-end;
-function TDWSProgramInfo.SetResultAsDouble(value: Double): HRESULT; stdcall;
-begin
-	_info.ResultAsFloat := value;
-	Result := S_OK;
-end;
-function TDWSProgramInfo.SetResultAsObject(value: IDWSGenericTypeValue): HRESULT; stdcall;
-var
-	nativeObj : IDWSNativeGenericTypeValue;
-	v : IInfo;
-begin
-	nativeObj := value as IDWSNativeGenericTypeValue;
-	if(nativeObj <> nil) then begin
-		v := nativeObj.GetInfo();
-		if v <> nil then begin
-			_info.ResultVars.Data := v.Data;
-			Result := S_OK;
-		end else begin
-			Result := E_INVALIDARG;
-		end;
-	end else begin
-		Result := E_INVALIDARG;
-    end;
-end;
-
-{$ENDREGION TDWSProgramInfo}
 
 end.

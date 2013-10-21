@@ -90,6 +90,10 @@ namespace DWScript
 							break;
 					}
 				}
+				else if (t == typeof(string))
+				{
+					_value.SetValue(value as string);
+				}
 				else if (typeof(IDWSGenericTypeValue).IsAssignableFrom(t))
 				{
 					_value.SetValue((IDWSGenericTypeValue)value);

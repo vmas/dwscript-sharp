@@ -5,9 +5,9 @@ namespace DWScript
 {
 	public class DWSProgramContext
 	{
-		private IDWSFunctionCallInfo _info;
+		private IDWSProgramInfo _info;
 
-		public DWSProgramContext(IDWSFunctionCallInfo info)
+		public DWSProgramContext(IDWSProgramInfo info)
 		{
 			_info = info;
 		}
