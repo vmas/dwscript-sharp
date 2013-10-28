@@ -68,6 +68,31 @@ namespace DWScript
 
 			set
 			{
+				if (value == null)
+				{
+					string typeName = _value.GetTypeName();
+					switch (typeName.ToUpperInvariant())
+					{
+						case "INTEGER":
+							value = 0;
+							break;
+						case "BOOLEAN":
+							value = false;
+							break;
+						case "FLOAT":
+						case "REAL":
+						case "DOUBLE":
+							value = 0.0;
+							break;
+						case "STRING":
+							value = string.Empty;
+							break;
+						default:
+							value = _value.GetProgramInfo().CreateTypedValue(typeName);
+							break;
+					}
+				}
+
 				Type t = value.GetType();
 				if (t.IsPrimitive)
 				{
