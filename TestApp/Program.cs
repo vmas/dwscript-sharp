@@ -24,8 +24,36 @@ namespace TestApp
 			var runtime = DWScript.Interop.NativeMethods.DWS_NewRuntime();
 			var context = new DWSContext(runtime.NewContext());
 			context.Error += (s,e) => { Debug.Print(e.Message); };
-			Test2(context);
+			Test3(context);
 			GC.KeepAlive(runtime);
+		}
+
+		private static void Test3(DWSContext context)
+		{
+			var a = new DWSArrayDefinition("TIntArray", "Integer");
+			context.DefineType(a);
+			var method = new DWSMethodDefinition("CreateArrayTest", new NativeAction(CreteArrayTest));
+			context.DefineMethod(method);
+			context.EvaluateScript("CreateArrayTest();");
+
+			GC.KeepAlive(method);
+		}
+
+		private static void CreteArrayTest(DWSProgramContext context, DWSValue[] agrs)
+		{
+			try
+			{
+				var v = context.CreateTypedValue("TIntArray");
+				var array = new DWSArray(v);
+				array.Resize(10);
+				//var ival = context.CreateTypedValue("Integer");
+				//ival.Value = 14;
+				//array.Set("2", ival);
+				array[0] = 12;
+			}
+			catch
+			{
+			}
 		}
 
 		private static void Test1(DWSContext context)

@@ -144,12 +144,13 @@ begin
 
 );
 	_assembly := _context.BeginNewExecution();
-
+	_assembly.BeginProgram();
+	_assembly.RunProgram(0);
+	_assembly.EndProgram();
 end;
 
 destructor TDWSContext.Destroy();
 begin
-	_assembly.EndProgram();
 	_scope.Destroy;
 	inherited;
 end;
@@ -417,7 +418,9 @@ begin
 		_assembly.Result.Clear();
 		_runtime.RecompileInContext(_context, s);
 		if _context.Msgs.Count = 0 then begin
+			_assembly.BeginProgram();
 			_assembly.RunProgram(0);
+			_assembly.EndProgram();
 		end else begin
 			self.ReportError(_context.Msgs.AsInfo);
 		end;
