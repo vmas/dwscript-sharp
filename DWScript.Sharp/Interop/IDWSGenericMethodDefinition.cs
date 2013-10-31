@@ -18,6 +18,9 @@ namespace DWScript.Interop
 		string GetReturnTypeName();
 
 		IntPtr GetCallback();
+
+		[return: MarshalAs(UnmanagedType.I1)]
+		bool GetIsOverloaded();
 	}
 
 

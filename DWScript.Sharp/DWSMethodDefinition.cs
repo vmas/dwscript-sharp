@@ -34,7 +34,9 @@ namespace DWScript
 			_proxy = methodProxy;
 		}
 
-		public string ReturnTypeName { get; set; }
+		public virtual bool Overloaded { get; set; }
+
+		public virtual string ReturnTypeName { get; set; }
 
 		public IList<DWSParameterDefinition> Args
 		{
@@ -79,6 +81,11 @@ namespace DWScript
 		IntPtr IDWSGenericMethodDefinition.GetCallback()
 		{
 			return Marshal.GetFunctionPointerForDelegate(_comCallback);
+		}
+
+		bool IDWSGenericMethodDefinition.GetIsOverloaded()
+		{
+			return this.Overloaded;
 		}
 	}
 }

@@ -29,6 +29,7 @@ type
 		function GetArgs(out rv: ICOMEnumerable): HResult; stdcall;
 		function GetReturnTypeName(out rv: TUnicodeString): HResult; stdcall;
 		function GetCallback(out rv : TCOMCallback) : HResult; stdcall;
+		function GetIsOverloaded(out rv : Boolean) : HRESULT; stdcall;
 	end;
 
 	IDWSGenericArrayDefinition = interface
@@ -288,24 +289,30 @@ var
 	name, typeName, s : TUnicodeString;
 	args : ICOMEnumerable;
 	enumerator : ICOMEnumerator;
-	ok : boolean;
+	ok, boolVal : boolean;
 	unkObj : IUnknown;
 	fieldDef : IDWSFieldDefinition;
 	fun: TdwsFunction;
 	param: TdwsParameter;
 	callback : TCOMCallback;
 	proxy : TMethodProxy;
+	i : integer;
 begin
 	Result := E_FAIL;
 	if((methoddefinition.GetName(name) <> S_OK) or name.IsNullOrEmpty())
 		then Exit(E_UNEXPECTED);
-	if(_scope.Functions.IndexOf(name) <> -1)
-		then Exit(E_ABORT);
+	i := _scope.Functions.IndexOf(name);
+	if(i >= 0) then begin
+		fun := TdwsFunction(_scope.Functions.Items[i]);
+		if (not fun.Overloaded) then Exit(E_ABORT);
+	end;
 
 	fun := _scope.Functions.Add();
 	try
 		try
 			fun.Name := name;
+			SuccessCall(methoddefinition.GetIsOverloaded(boolVal));
+			fun.Overloaded := boolVal;
 			SuccessCall(methoddefinition.GetCallback(callback));
 			proxy := TMethodProxy.Create(self, fun, callback);
 			fun.OnEval := proxy.dwsEvalCallback;

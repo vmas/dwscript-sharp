@@ -110,6 +110,24 @@ namespace UnitTests
 		}
 
 		[Test]
+		public void DefineMethod_AsOverloadedProcedure()
+		{
+			var actionA = new DWSMethodDefinition("Test", (x, a) => { });
+			actionA.Overloaded = true;
+			context.DefineMethod(actionA);
+
+			var actionB = new DWSMethodDefinition("Test", (x, a) => { });
+			actionB.Args.Add(new DWSParameterDefinition("a", "Integer"));
+			actionB.Overloaded = true;
+			context.DefineMethod(actionB);
+
+			context.EvaluateScript("Test(); Test(1);");
+			Assert.IsNull(this.LastErrorMessage);
+			GC.KeepAlive(actionA);
+			GC.KeepAlive(actionB);
+		}
+
+		[Test]
 		public void DefineType_AsType()
 		{
 			var t = new DWSTypeDefinition("TCustomType");
