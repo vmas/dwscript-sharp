@@ -16,7 +16,7 @@ uses
 
 type
 	TDWSErrorCallback = procedure(const error: string); cdecl;
-	TDWSIncludeCallback = procedure(const scriptName: string; out scriptSource: TUnicodeString); cdecl;
+	TDWSIncludeCallback = function(const scriptName: string): TUnicodeString; safecall;
 	TCOMCallback = procedure(const obj: IUnknown); safecall;
 
 	IDWSGenericTypeDefinition = interface
@@ -177,12 +177,8 @@ begin
 end;
 
 procedure TDWSContext.dwsIncludeCallback(const scriptName: string; var scriptSource: string);
-var
-	scriptCode : TUnicodeString;
 begin
-	self._includeCallback(scriptName, scriptCode);
-	scriptSource := scriptCode;
-	scriptSource := '';
+	scriptSource := self._includeCallback(scriptName);
 end;
 
 function TDWSContext.DefineType(typedefinition: IDWSGenericTypeDefinition) : HRESULT; stdcall;
