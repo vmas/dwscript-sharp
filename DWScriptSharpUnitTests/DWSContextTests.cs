@@ -168,6 +168,24 @@ namespace UnitTests
 			Assert.AreEqual("Hello, World!", msg);
 			Assert.IsNull(this.LastErrorMessage);
 		}
-	
+
+		[Test]
+		public void EvaluateScript_ExecuteAndThrowException()
+		{
+			context.EvaluateScript(@"raise Exception.Create('exceptionName');");
+			Assert.AreEqual("Runtime Error: User defined exception: exceptionName [line: 1, column: 40]\r\n", this.LastErrorMessage);
+		}
+
+
+		[Test]
+		public void EvaluateScript_ExecuteAndThrowCLRException()
+		{
+			var exception = new InvalidOperationException();
+			var action = new DWSMethodDefinition("Test", (x, a) => { throw exception; });
+			context.DefineMethod(action);
+			context.EvaluateScript(@"Test();");
+			Assert.AreEqual(string.Format("Runtime Error: {0} in Test [line: 1, column: 1]\r\n", exception.Message.Replace(".", "")), this.LastErrorMessage);
+		}
+
 	}
 }

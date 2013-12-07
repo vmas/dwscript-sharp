@@ -3,7 +3,7 @@
 			<ProjectGuid>{32BF2B9F-BAD4-440E-A638-0183223F9E34}</ProjectGuid>
 			<MainSource>DWScript.dpr</MainSource>
 			<Base>True</Base>
-			<Config Condition="'$(Config)'==''">Debug</Config>
+			<Config Condition="'$(Config)'==''">Release</Config>
 			<Platform>Win32</Platform>
 			<AppType>Library</AppType>
 			<FrameworkType>None</FrameworkType>
@@ -24,6 +24,7 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_Define>Windows;$(DCC_Define)</DCC_Define>
 			<DCC_UnitSearchPath>..\dwscript\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_DcuOutput>..\bin\$(Config)\Units</DCC_DcuOutput>
 			<DCC_ExeOutput>..\bin\$(Config)</DCC_ExeOutput>

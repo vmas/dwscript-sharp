@@ -3,7 +3,7 @@
 			<ProjectGuid>{8362FA24-1096-4271-B2C8-CF8C93A8B45F}</ProjectGuid>
 			<MainSource>dwsLibRuntime.dpk</MainSource>
 			<Base>True</Base>
-			<Config Condition="'$(Config)'==''">Debug</Config>
+			<Config Condition="'$(Config)'==''">Release</Config>
 			<Platform>Win32</Platform>
 			<AppType>Package</AppType>
 			<FrameworkType>VCL</FrameworkType>
@@ -24,6 +24,7 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_Define>Windows;$(DCC_Define)</DCC_Define>
 			<DCC_UnitSearchPath>..\dwscript\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_F>false</DCC_F>
 			<GenPackage>true</GenPackage>

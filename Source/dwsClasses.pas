@@ -9,13 +9,14 @@ uses
 	DWSGenericType,
 	dwsCoreExprs,
 //	Dialogs,
+	ComObj,
 	Windows,
 	dwsCOMTypes;
 
 
 type
 	TDWSErrorCallback = procedure(const error: string); cdecl;
-	TCOMCallback = procedure(const obj: IUnknown); cdecl;
+	TCOMCallback = procedure(const obj: IUnknown); safecall;
 
 	IDWSGenericTypeDefinition = interface
 		['{5FA48473-A1C0-4F40-BFAE-94A207115B09}']
@@ -184,6 +185,7 @@ begin
 	try
 		try
 			c.Name := name;
+
 			SuccessCall(typedefinition.GetFields(members));
 			if(members = nil)
 				then raise ECOMException.Create(E_UNEXPECTED);
@@ -421,18 +423,26 @@ var
 begin
 	_runtime.AddUnit(_scope);
 	try
-		s := 'uses dwsContext;' + #13#10 + code;
+		s := code;
+		s := 'uses dwsContext;' + #13#10 + s;
 		_assembly.Result.Clear();
+		_assembly.Msgs.Clear();
+		_context.Msgs.Clear();
+
 		_runtime.RecompileInContext(_context, s);
-		if _context.Msgs.Count = 0 then begin
+		if not _context.Msgs.HasErrors then begin
 			_assembly.BeginProgram();
 			_assembly.RunProgram(0);
 			_assembly.EndProgram();
+			if _assembly.Msgs.HasErrors then begin
+				self.ReportError(_assembly.Msgs.AsInfo);
+			end;
 		end else begin
 			self.ReportError(_context.Msgs.AsInfo);
 		end;
+
 		rv := _assembly.Result.ToString();
-    finally
+	finally
 		_runtime.RemoveUnit(_scope);
 	end;
 	Result := S_OK;

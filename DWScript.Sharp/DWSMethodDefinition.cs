@@ -61,21 +61,29 @@ namespace DWScript
 			return this.ReturnTypeName;
 		}
 
-		protected virtual void Callback(IDWSProgramInfo comObj)
+		protected virtual int Callback(IDWSProgramInfo comObj)
 		{
-			var args = new DWSValue[this.Args.Count];
-			var argDefs = this.Args;
-			for (int i = argDefs.Count - 1; i >= 0; i--)
+			try
 			{
-				args[i] = new DWSValue(comObj.GetVariable(argDefs[i].Name));
+				var args = new DWSValue[this.Args.Count];
+				var argDefs = this.Args;
+				for (int i = argDefs.Count - 1; i >= 0; i--)
+				{
+					args[i] = new DWSValue(comObj.GetVariable(argDefs[i].Name));
+				}
+				object rv = _callback.DynamicInvoke(new DWSProgramContext(comObj), args);
+				if (this.ReturnTypeName != null)
+				{
+					var result = new DWSValue(comObj.CreateTypedValue(this.ReturnTypeName));
+					result.Value = rv;
+					comObj.SetResultValue(result.GetNativeValue());
+				}
 			}
-			object rv = _callback.DynamicInvoke(new DWSProgramContext(comObj), args);
-			if (this.ReturnTypeName != null)
+			catch (Exception ex)
 			{
-				var result = new DWSValue(comObj.CreateTypedValue(this.ReturnTypeName));
-				result.Value = rv;
-				comObj.SetResultValue(result.GetNativeValue());
+				return Marshal.GetHRForException(ex.InnerException ?? ex);
 			}
+			return 0;
 		}
 
 		IntPtr IDWSGenericMethodDefinition.GetCallback()

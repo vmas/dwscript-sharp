@@ -30,7 +30,10 @@ namespace UnitTests
 
 		void context_Error(object sender, DWSExecutionErrorEventArgs e)
 		{
-			_lastErrorMessage = e.Message;
+			if(_lastErrorMessage == null)
+				_lastErrorMessage = e.Message;
+			else
+				_lastErrorMessage = _lastErrorMessage + e.Message;
 		}
 
 		public string LastErrorMessage

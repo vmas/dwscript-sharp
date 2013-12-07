@@ -26,6 +26,7 @@ package dwsLibRuntime;
 {$LIBSUFFIX 'XE'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
+{$DEFINE Windows}
 
 requires
   vcl,
