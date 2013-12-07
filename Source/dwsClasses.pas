@@ -16,6 +16,7 @@ uses
 
 type
 	TDWSErrorCallback = procedure(const error: string); cdecl;
+	TDWSIncludeCallback = procedure(const scriptName: string; out scriptSource: TUnicodeString); cdecl;
 	TCOMCallback = procedure(const obj: IUnknown); safecall;
 
 	IDWSGenericTypeDefinition = interface
@@ -45,6 +46,7 @@ type
 	IDWSContext = interface
 		['{A4E0EADC-E8F2-4388-B2BD-7B5DA5B1694D}']
 		function SetErrorCallback(callback: TDWSErrorCallback): HRESULT; stdcall;
+		function SetIncludeCallback(callback: TDWSIncludeCallback): HRESULT; stdcall;
 		function DefineType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 		function DefineRecordType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 		function DefineArrayType(typedefinition: IDWSGenericArrayDefinition): HRESULT; stdcall;
@@ -58,6 +60,7 @@ type
 		_scope: TdwsUnit;
 		_runtime: TDelphiWebScript;
 		_errorCallback: TDWSErrorCallback;
+		_includeCallback: TDWSIncludeCallback;
 		_context : IdwsProgram;
 		_assembly : IdwsProgramExecution;
 
@@ -65,7 +68,10 @@ type
 	public
 		constructor Create(runtime: TDelphiWebScript);
 		destructor Destroy(); override;
+		procedure dwsIncludeCallback(const scriptName: string; var scriptSource: string);
+
 		function SetErrorCallback(callback: TDWSErrorCallback): HRESULT; stdcall;
+		function SetIncludeCallback(callback: TDWSIncludeCallback): HRESULT; stdcall;
 		function DefineType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 		function DefineRecordType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 		function DefineArrayType(typedefinition: IDWSGenericArrayDefinition): HRESULT; stdcall;
@@ -136,6 +142,7 @@ constructor TDWSContext.Create(runtime: TDelphiWebScript);
 begin
 	_errorCallback := nil;
 	_runtime := runtime;
+	_runtime.OnInclude := self.dwsIncludeCallback;
 	_scope := TdwsUnit.Create(nil);
 	_scope.UnitName := 'dwsContext';
 	_context := _runtime.Compile(''
@@ -161,6 +168,21 @@ function TDWSContext.SetErrorCallback(callback: TDWSErrorCallback): HRESULT; std
 begin
 	self._errorCallback := callback;
 	Result := S_OK;
+end;
+
+function TDWSContext.SetIncludeCallback(callback: TDWSIncludeCallback): HRESULT; stdcall;
+begin
+	self._includeCallback := callback;
+	Result := S_OK;
+end;
+
+procedure TDWSContext.dwsIncludeCallback(const scriptName: string; var scriptSource: string);
+var
+	scriptCode : TUnicodeString;
+begin
+	self._includeCallback(scriptName, scriptCode);
+	scriptSource := scriptCode;
+	scriptSource := '';
 end;
 
 function TDWSContext.DefineType(typedefinition: IDWSGenericTypeDefinition) : HRESULT; stdcall;

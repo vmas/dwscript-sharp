@@ -17,5 +17,8 @@ namespace DWScript.Interop
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
 	public delegate int DWSCOMCallbackDelegate([MarshalAs(UnmanagedType.Interface)] IDWSProgramInfo comObj);
-	
+
+	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+	public delegate int DWSIncludeCallbackDelegate([MarshalAs(UnmanagedType.LPWStr)] string scriptName, [MarshalAs(UnmanagedType.LPWStr)] out string scriptSource);
+
 }

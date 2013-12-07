@@ -187,5 +187,24 @@ namespace UnitTests
 			Assert.AreEqual(string.Format("Runtime Error: {0} in Test [line: 1, column: 1]\r\n", exception.Message.Replace(".", "")), this.LastErrorMessage);
 		}
 
+		[Test]
+		public void EvaluateScript_ExecuteWithInclusionDirectives()
+		{
+			string s;
+			using (var context = new CustomContext(runtime.NewContext()))
+			{
+				string error = null;
+				context.Error += (o, e) => { error = e.Message; };
+				context.SourceGetter = ((name) => name == "filename" ? "var a := 'hello';" : null);
+				s = context.EvaluateScript("{$INCLUDE 'filename'}\r\nPrint(a);");
+				Assert.IsNull(error);
+				Assert.AreEqual("hello", s);
+
+				context.SourceGetter = null;
+				s = context.EvaluateScript("{$INCLUDE 'filename'}\r\nPrint(a);");
+				Assert.AreEqual("Compile Error: Could not find file \"filename\" on input paths [line: 1, column: 11]\r\n", error);
+			}
+
+		}
 	}
 }

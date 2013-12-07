@@ -8,7 +8,8 @@ namespace DWScript.Interop
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IDWSContext
 	{
-		void SetErrorCallback([MarshalAs(UnmanagedType.FunctionPtr)] DWSErrorCallbackDelegate callback);		
+		void SetErrorCallback([MarshalAs(UnmanagedType.FunctionPtr)] DWSErrorCallbackDelegate callback);
+		void SetIncludeCallback([MarshalAs(UnmanagedType.FunctionPtr)] DWSIncludeCallbackDelegate callback);
 		void DefineType([MarshalAs(UnmanagedType.Interface)] IDWSGenericTypeDefinition typeDefinition);
 		void DefineRecordType([MarshalAs(UnmanagedType.Interface)] IDWSGenericTypeDefinition typedefinition);
 		void DefineArrayType([MarshalAs(UnmanagedType.Interface)] IDWSGenericArrayDefinition typedefinition);

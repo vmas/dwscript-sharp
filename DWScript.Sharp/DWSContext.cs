@@ -9,43 +9,65 @@ namespace DWScript
 	{
 		private IDWSContext _context;
 		private DWSErrorCallbackDelegate _errorCallback;
+		private DWSIncludeCallbackDelegate _includeCallback;
 
 		public event EventHandler<DWSExecutionErrorEventArgs> Error;
 
 		public DWSContext(IDWSContext context)
 		{
+			if (context == null)
+				throw new ArgumentNullException("context");
+
 			_errorCallback = ErrorCallback;
+			_includeCallback = IncludeCallback;
 
 			_context = context;
 			_context.SetErrorCallback(_errorCallback);
+			_context.SetIncludeCallback(_includeCallback);
 		}
 
 		public void DefineMethod(DWSMethodDefinition method)
 		{
-			method.Init(_context.AddFunction(method));
+			method.Init(Context.AddFunction(method));
 		}
 
 		public void DefineType(DWSTypeDefinition type)
 		{
 			if (type.IsStruct)
-				_context.DefineRecordType(type);
+				Context.DefineRecordType(type);
 			else
-				_context.DefineType(type);
+				Context.DefineType(type);
 		}
 
 		public void DefineType(DWSArrayDefinition type)
 		{
-			_context.DefineArrayType(type);
+			Context.DefineArrayType(type);
 		}
 
 		public string EvaluateScript(string code)
 		{
-			return _context.Evaluate(code);
+			return Context.Evaluate(code);
 		}
 
 		public void Stop()
 		{
-			_context.Stop();
+			Context.Stop();
+		}
+
+
+		protected IDWSContext Context
+		{
+			get
+			{
+				if (_context == null)
+					throw new ObjectDisposedException(this.GetType().FullName);
+				return _context;
+			}
+		}
+
+		protected virtual string OnInclude(string scriptName)
+		{
+			return null;
 		}
 
 		private void ErrorCallback(string message)
@@ -55,10 +77,27 @@ namespace DWScript
 				Error(this, new DWSExecutionErrorEventArgs(message));
 		}
 
+		private int IncludeCallback(string scriptName, out string scriptSource)
+		{
+			scriptSource = null;
+			try
+			{
+				scriptSource = OnInclude(scriptName);
+			}
+			catch(Exception ex)
+			{
+				return Marshal.GetHRForException(ex);
+			}
+			return 0;
+		}
+
 		public void Dispose()
 		{
-			Marshal.ReleaseComObject(_context);
-			_context = null;
+			if (_context != null)
+			{
+				Marshal.ReleaseComObject(_context);
+				_context = null;
+			}
 		}
 	}
 }
