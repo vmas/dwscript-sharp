@@ -49,6 +49,7 @@ type
 		function GetHasDefaultValue(out rv: Boolean): HResult; stdcall;
 		function GetDefaultValue(out rv: TUnicodeString): HResult; stdcall;
 		function GetModifier(out rv: Integer): HRESULT; stdcall;
+		function GetIsVarParam(out rv: Boolean): HRESULT; stdcall;
 	end;
 
 	// TDWSGenericType
