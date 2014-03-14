@@ -14,6 +14,7 @@ namespace DWScript
 
 		}
 
+		public override bool IsInOut { get; set; }
 		public override bool HasDefaultValue { get; set; }
 		public override string DefaultValue
 		{

@@ -41,6 +41,12 @@ namespace DWScript
 
 		public DWSVisibility Modifier { get; set; }
 
+		public virtual bool IsInOut
+		{
+			get { throw new NotSupportedException(); }
+			set { throw new NotSupportedException(); }
+		}
+
 		string IDWSFieldDefinition.GetName()
 		{
 			return _name;
@@ -64,6 +70,11 @@ namespace DWScript
 		DWSVisibility IDWSFieldDefinition.GetModifier()
 		{
 			return this.Modifier;
+		}
+
+		bool IDWSFieldDefinition.GetIsVarParam()
+		{
+			return this.IsInOut;
 		}
 	}
 }

@@ -424,6 +424,9 @@ begin
 					param.Name := name;
 					param.DataType := typeName;
 
+					SuccessCall(fieldDef.GetIsVarParam(ok));
+					param.IsVarParam := ok;
+
 					SuccessCall(fieldDef.GetHasDefaultValue(ok));
 					param.HasDefaultValue := ok;
 					if (param.HasDefaultValue) then begin

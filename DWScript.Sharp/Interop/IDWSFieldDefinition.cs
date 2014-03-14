@@ -18,5 +18,7 @@ namespace DWScript.Interop
 		string GetDefaultValue();
 		[return: MarshalAs(UnmanagedType.I4)]
 		DWSVisibility GetModifier();
+		[return: MarshalAs(UnmanagedType.I1)]
+		bool GetIsVarParam();
 	}
 }
