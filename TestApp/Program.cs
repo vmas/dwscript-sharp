@@ -24,8 +24,28 @@ namespace TestApp
 			var runtime = DWScript.Interop.NativeMethods.DWS_NewRuntime();
 			var context = new DWSContext(runtime.NewContext());
 			context.Error += (s,e) => { Debug.Print(e.Message); };
-			Test3(context);
+			Test4(context);
 			GC.KeepAlive(runtime);
+		}
+
+		private static void Test4(DWSContext context)
+		{
+			var a = new DWSEnumDefinition("TEnum");
+			a.Add("ENUM_VALUE1", 0);
+			a.Add("ENUM_VALUE2", 1);
+			a.Add("ENUM_VALUE3", 2);
+			context.DefineType(a);
+
+			var method = new DWSMethodDefinition("CreateArrayTest", new NativeAction((cx, args) =>
+			{
+				var v = new DWSElement(args[0]);
+				bool s = false;
+			}));
+			method.Args.Add(new DWSParameterDefinition("a", "TEnum") { DefaultValue = "ENUM_VALUE3" });
+			context.DefineMethod(method);
+			context.EvaluateScript("CreateArrayTest();");
+
+			GC.KeepAlive(method);
 		}
 
 		private static void Test3(DWSContext context)

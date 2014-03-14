@@ -45,25 +45,33 @@ namespace DWScript
 			_value.SetField(name, value.GetNativeValue());
 		}
 
+		public object GetValueAs(string typeName)
+		{
+			if (typeName == null)
+				throw new ArgumentNullException("typeName");
+
+			switch (typeName.ToUpperInvariant())
+			{
+				case "INTEGER":
+					return _value.GetValueAsInt64();
+				case "BOOLEAN":
+					return _value.GetValueAsBoolean();
+				case "FLOAT":
+				case "REAL":
+				case "DOUBLE":
+					return _value.GetValueAsDouble();
+				case "STRING":
+					return _value.GetValueAsString();
+				default:
+					return new DWSValue(_value.GetValueAsObject());
+			}
+		}
+
 		public object Value
 		{
 			get
 			{
-				switch (_value.GetTypeName().ToUpperInvariant())
-				{
-					case "INTEGER":
-						return _value.GetValueAsInt64();
-					case "BOOLEAN":
-						return _value.GetValueAsBoolean();
-					case "FLOAT":
-					case "REAL":
-					case "DOUBLE":
-						return _value.GetValueAsDouble();
-					case "STRING":
-						return _value.GetValueAsString();
-					default:
-						return new DWSValue(_value.GetValueAsObject());
-				}
+				return GetValueAs(_value.GetTypeName());
 			}
 
 			set

@@ -51,6 +51,12 @@ type
 		function GetModifier(out rv: Integer): HRESULT; stdcall;
 	end;
 
+	IDWSElementDefinition = interface
+		['{28CF73E3-175E-45DE-97DF-EFF1F8D9B52C}']
+		function GetName(out rv: TUnicodeString): HResult; stdcall;
+		function GetValue(out rv: Integer): HResult; stdcall;
+    end;
+
 	// TDWSGenericType
 	//
 	TDWSGenericTypeValue = class(

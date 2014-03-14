@@ -43,6 +43,8 @@
     <Compile Include="DWSArray.cs" />
     <Compile Include="DWSArrayDefinition.cs" />
     <Compile Include="DWSContext.cs" />
+    <Compile Include="DWSElement.cs" />
+    <Compile Include="DWSEnumDefinition.cs" />
     <Compile Include="DWSExecutionErrorEventArgs.cs" />
     <Compile Include="DWSFieldDefinition.cs" />
     <Compile Include="DWSMethodDefinition.cs" />
@@ -55,6 +57,7 @@
     <Compile Include="Interop\ICOMEnumerator.cs" />
     <Compile Include="Interop\IDelphiObject.cs" />
     <Compile Include="Interop\IDWSContext.cs" />
+    <Compile Include="Interop\IDWSElementDefinition.cs" />
     <Compile Include="Interop\IDWSFieldDefinition.cs" />
     <Compile Include="Interop\IDWSProgramInfo.cs" />
     <Compile Include="Interop\IDWSGenericArrayDefinition.cs" />

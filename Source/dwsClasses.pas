@@ -44,7 +44,7 @@ type
 	end;
 
 	IDWSContext = interface
-		['{A4E0EADC-E8F2-4388-B2BD-7B5DA5B1694D}']
+		['{FFE89EEB-45BF-43E0-826C-7BB5D95F5027}']
 		function SetErrorCallback(callback: TDWSErrorCallback): HRESULT; stdcall;
 		function SetIncludeCallback(callback: TDWSIncludeCallback): HRESULT; stdcall;
 		function DefineType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
@@ -53,6 +53,7 @@ type
 		function DefineMethod(methoddefinition: IDWSGenericMethodDefinition; out method : IUnknown): HRESULT; stdcall;
 		function Evaluate(code: TUnicodeString; out rv : TUnicodeString): HRESULT; stdcall;
 		function Stop(): HRESULT; stdcall;
+		function DefineEnumType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 	end;
 
 	TDWSContext = class(TCOMObject, IDWSContext)
@@ -78,6 +79,7 @@ type
 		function DefineMethod(methoddefinition: IDWSGenericMethodDefinition; out method : IUnknown): HRESULT; stdcall;
 		function Evaluate(code: TUnicodeString; out rv : TUnicodeString): HRESULT; stdcall;
 		function Stop(): HRESULT; stdcall;
+		function DefineEnumType(typedefinition: IDWSGenericTypeDefinition): HRESULT; stdcall;
 	end;
 
 	IDWSRuntime = interface
@@ -196,7 +198,7 @@ begin
 	Result := E_FAIL;
 	if((typedefinition.GetName(name) <> S_OK) or name.IsNullOrEmpty())
 		then Exit(E_UNEXPECTED);
-	if((_scope.Records.IndexOf(name) <> -1) or (_scope.Classes.IndexOf(name) <> -1))
+	if((_scope.Records.IndexOf(name) <> -1) or (_scope.Classes.IndexOf(name) <> -1) or (_scope.Enumerations.IndexOf(name) <> -1))
 		then Exit(E_ABORT);
 
 	c := _scope.Classes.Add();
@@ -258,7 +260,7 @@ begin
 	Result := E_FAIL;
 	if((typedefinition.GetName(name) <> S_OK) or name.IsNullOrEmpty())
 		then Exit(E_UNEXPECTED);
-	if((_scope.Records.IndexOf(name) <> -1) or (_scope.Classes.IndexOf(name) <> -1))
+	if((_scope.Records.IndexOf(name) <> -1) or (_scope.Classes.IndexOf(name) <> -1) or (_scope.Enumerations.IndexOf(name) <> -1))
 		then Exit(E_ABORT);
 
 	c := _scope.Records.Add();
@@ -298,6 +300,66 @@ begin
 	finally
 	   if(Result <> S_OK) then begin
 			_scope.Records.Delete(_scope.Records.IndexOf(c.Name));
+			c.Free;
+	   end;
+	end;
+
+end;
+
+function TDWSContext.DefineEnumType(typedefinition: IDWSGenericTypeDefinition) : HRESULT; stdcall;
+var
+	name : TUnicodeString;
+	members : ICOMEnumerable;
+	enumerator : ICOMEnumerator;
+	ok : boolean;
+	unkObj : IUnknown;
+	elemDef : IDWSElementDefinition;
+	c: TdwsEnumeration;
+	f: TdwsElement;
+	v: Integer;
+begin
+	Result := E_FAIL;
+	if((typedefinition.GetName(name) <> S_OK) or name.IsNullOrEmpty())
+		then Exit(E_UNEXPECTED);
+	if((_scope.Records.IndexOf(name) <> -1) or (_scope.Classes.IndexOf(name) <> -1) or (_scope.Enumerations.IndexOf(name) <> -1))
+		then Exit(E_ABORT);
+
+	c := _scope.Enumerations.Add();
+	try
+		try
+			c.Name := name;
+			SuccessCall(typedefinition.GetFields(members));
+			if(members = nil)
+				then raise ECOMException.Create(E_UNEXPECTED);
+			SuccessCall(members.GetEnumerator(enumerator));
+			if(enumerator = nil) then
+				raise ECOMException.Create(E_UNEXPECTED);
+			while(true) do begin
+				SuccessCall(enumerator.MoveNext(ok));
+				if(not ok) then break;
+				SuccessCall(enumerator.GetCurrent(unkObj));
+				elemDef := unkObj as IDWSElementDefinition;
+				if(elemDef = nil) then
+					raise ECOMException.Create(E_UNEXPECTED);
+
+				SuccessCall(elemDef.GetName(name));
+				SuccessCall(elemDef.GetValue(v));
+
+				f := c.Elements.Add();
+				f.Name := name;
+				f.DisplayName := name;
+				f.IsUserDef := True;
+				f.UserDefValue := v;
+			end;
+			Result := S_OK;
+		except
+			on E : ECOMException do begin
+				Result := E.Code;
+			end;
+		end;
+	finally
+	   if(Result <> S_OK) then begin
+			_scope.Enumerations.Delete(_scope.Enumerations.IndexOf(c.Name));
 			c.Free;
 	   end;
 	end;

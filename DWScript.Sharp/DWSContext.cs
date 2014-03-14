@@ -44,6 +44,11 @@ namespace DWScript
 			Context.DefineArrayType(type);
 		}
 
+		public void DefineType(DWSEnumDefinition type)
+		{
+			Context.DefineEnumType(type);
+		}
+
 		public string EvaluateScript(string code)
 		{
 			return Context.Evaluate(code);

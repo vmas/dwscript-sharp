@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace DWScript.Interop
 {
 	[ComImport]
-	[Guid("A4E0EADC-E8F2-4388-B2BD-7B5DA5B1694D")]
+	[Guid("FFE89EEB-45BF-43E0-826C-7BB5D95F5027")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	public interface IDWSContext
 	{
@@ -17,6 +17,7 @@ namespace DWScript.Interop
 		object AddFunction([MarshalAs(UnmanagedType.Interface)] IDWSGenericMethodDefinition methodDefinition);
 		[return: MarshalAs(UnmanagedType.LPWStr)]
 		string Evaluate([MarshalAs(UnmanagedType.LPWStr)] string code);
-		void Stop();		
+		void Stop();
+		void DefineEnumType([MarshalAs(UnmanagedType.Interface)] IDWSGenericTypeDefinition typedefinition);
 	}
 }
