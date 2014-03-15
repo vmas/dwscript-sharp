@@ -135,7 +135,7 @@ namespace UnitTests
 			t.Fields.Add(new DWSFieldDefinition("y", "Integer"));
 			context.DefineType(t);
 			
-			context.EvaluateScript(@"var a : TCustomType; a := TCustomType.Create(); a.x := 1; a.y := 2;");
+			context.EvaluateScript(@"var a : TCustomType; a := TCustomType.Create(); a.x := 1; a.y := 2; a.Free();");
 			Assert.IsNull(this.LastErrorMessage);
 		}
 
